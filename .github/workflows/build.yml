@@ -1,0 +1,102 @@
+name: Build magisk adblock module
+
+permissions:
+  contents: write
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 0 * * 1'
+  push:
+    tags:
+      - 'v*.*.*'
+
+jobs:
+  build:
+    name: Build magisk adblock module by ${{ github.actor }}
+    runs-on: ubuntu-latest
+    env:
+      latest_tag: v1.0.0
+      hosts_file: false
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        path: 'src'
+
+    - name: Checkout hosts build
+      uses: actions/checkout@v4
+      with:
+        ref: 'build'
+        path: 'build'
+
+    - name: Setup node
+      uses: actions/setup-node@v4
+      with:
+        node-version: 21
+
+    - name: Get latest tag
+      run: |
+        cd $GITHUB_WORKSPACE/src
+        LATEST_TAG=${{ github.ref_name }}
+        if [[ $LATEST_TAG != v*.*.* ]]; then
+          LATEST_TAG=$(git tag | sort --version-sort | tail -n1)
+        fi
+        if [ -n "${LATEST_TAG}" ]; then
+          echo "latest_tag=${LATEST_TAG}" >> $GITHUB_ENV
+        fi
+
+    - name: Build hosts file
+      run: |
+        cd $GITHUB_WORKSPACE/src
+        node ./build_hosts.js
+        if [ -f $GITHUB_WORKSPACE/src/hosts ]; then
+          echo "hosts_file=true" >> $GITHUB_ENV
+          cp -f hosts $GITHUB_WORKSPACE/build
+        else
+          exit 1
+        fi
+
+    - name: Push hosts file
+      if: env.hosts_file == 'true'
+      run: |
+        cd $GITHUB_WORKSPACE/build
+        git config --local user.email "github-actions@github.com"
+        git config --local user.name "GitHub Actions"
+        git add .
+        git commit --amend -m "Build $GITHUB_SHA" || exit 0   # do not error if nothing to commit
+        git push --force
+
+    - name: Build module
+      if: env.hosts_file == 'true'
+      run: |
+        cd $GITHUB_WORKSPACE/src/module
+        sed -i "s/version=/version=${{ env.latest_tag }}/g" module.prop
+        sed -i "s/versionCode=/versionCode=$(echo ${{ env.latest_tag }} | sed -e 's/\.//g; s/v//g')/g" module.prop
+        sed -i "s,updateJson=,updateJson=https://raw.githubusercontent.com/${{ github.repository }}/main/update.json,g" module.prop
+        sed -i "s,HOSTS_URL=,HOSTS_URL=https://raw.githubusercontent.com/${{ github.repository }}/build/hosts,g" host_update.sh
+        mkdir -p system/etc
+        cp ../hosts system/etc
+
+    - name: Package the module
+      if: env.hosts_file == 'true' && startsWith(github.ref, 'refs/tags/v')
+      run: |
+        cd $GITHUB_WORKSPACE/src/module
+        zip -r Magisk-AdBlock-${{ github.ref_name }}.zip .
+        mv *.zip $GITHUB_WORKSPACE
+
+    - name: Upload module
+      if: env.hosts_file == 'true'
+      uses: actions/upload-artifact@v3
+      with:
+        name: ${{ github.sha }}
+        path: ${{ github.workspace }}/src/module
+
+    - name: Release module
+      if: env.hosts_file == 'true' && startsWith(github.ref, 'refs/tags/v')
+      uses: softprops/action-gh-release@v1
+      with:
+        files: ${{ github.workspace }}/Magisk-AdBlock-${{ github.ref_name }}.zip
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

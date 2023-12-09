@@ -1,0 +1,8 @@
+id=magisk-adblock
+name=Magisk AdBlock
+version=
+versionCode=
+author=dongcodebmt
+description=Magisk module for blocking ads and malware
+template=3
+updateJson=
