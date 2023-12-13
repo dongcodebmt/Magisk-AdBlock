@@ -12,5 +12,7 @@ busybox wget $HOSTS_URL -O $MODDIR/hosts_temp
 if [ -f $MODDIR/hosts_temp ]; then
   rm -f $MODDIR/system/etc/hosts
   mv $MODDIR/hosts_temp $MODDIR/system/etc/hosts
-#  echo "$(date): hosts file updated!" >> /storage/emulated/0/magisk_adblock.log
+  echo "$(date): The hosts file has been updated!" >> $MODDIR/updater.log
+else
+  echo "$(date): Download hosts file failed!" >> $MODDIR/updater.log
 fi
