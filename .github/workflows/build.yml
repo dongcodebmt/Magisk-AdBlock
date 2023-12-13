@@ -1,4 +1,4 @@
-name: Build magisk adblock module
+name: Build module
 
 permissions:
   contents: write
@@ -13,7 +13,7 @@ on:
 
 jobs:
   build:
-    name: Build magisk adblock module by ${{ github.actor }}
+    name: Build module by ${{ github.actor }}
     runs-on: ubuntu-latest
     env:
       latest_tag: v1.0.0
@@ -75,7 +75,7 @@ jobs:
         sed -i "s/version=/version=${{ env.latest_tag }}/g" module.prop
         sed -i "s/versionCode=/versionCode=$(echo ${{ env.latest_tag }} | sed -e 's/\.//g; s/v//g')/g" module.prop
         sed -i "s,updateJson=,updateJson=https://raw.githubusercontent.com/${{ github.repository }}/main/update.json,g" module.prop
-        sed -i "s,HOSTS_URL=,HOSTS_URL=https://raw.githubusercontent.com/${{ github.repository }}/build/hosts,g" host_update.sh
+        sed -i "s,HOSTS_URL=,HOSTS_URL=https://raw.githubusercontent.com/${{ github.repository }}/build/hosts,g" updater.sh
         mkdir -p system/etc
         cp ../hosts system/etc
 
