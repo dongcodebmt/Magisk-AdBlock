@@ -6,5 +6,27 @@
         "https://raw.githubusercontent.com/anudeepND/whitelist/master/domains/optional-list.txt",
         "https://raw.githubusercontent.com/anudeepND/whitelist/master/domains/referral-sites.txt",
         "https://raw.githubusercontent.com/anudeepND/whitelist/master/domains/whitelist.txt"
+    ],
+    "defaultHosts": [
+        "127.0.0.1 localhost",
+        "::1 localhost",
+        "::1 ip6-localhost"
+    ],
+    "skipHosts": [
+        "127.0.0.1",
+        "0.0.0.0",
+        "255.255.255.255",
+        "::1",
+        "localhost",
+        "ip6-localhost",
+        "localhost.localdomain",
+        "local",
+        "broadcasthost",
+        "ip6-loopback",
+        "ip6-localnet",
+        "ip6-mcastprefix",
+        "ip6-allnodes",
+        "ip6-allrouters",
+        "ip6-allhosts"
     ]
 }
