@@ -88,14 +88,14 @@ jobs:
 
     - name: Upload module
       if: env.hosts_file == 'true'
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: ${{ github.sha }}
         path: ${{ github.workspace }}/src/module
 
     - name: Release module
       if: env.hosts_file == 'true' && startsWith(github.ref, 'refs/tags/v')
-      uses: softprops/action-gh-release@v1
+      uses: softprops/action-gh-release@v2
       with:
         files: ${{ github.workspace }}/Magisk-AdBlock-${{ github.ref_name }}.zip
       env:
